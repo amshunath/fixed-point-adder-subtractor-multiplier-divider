@@ -51,64 +51,90 @@ always @(a,b) begin
 	end
 endmodule
 
-module Test_add;
+`timescale 1ns / 1ps
 
-	// Inputs
-	reg [31:0] a;
-	reg [31:0] b;
+module tb_qadd;
 
-	// Outputs
-	wire [31:0] c;
+// Parameters
+parameter Q = 15;
+parameter N = 32;
 
-	// Instantiate the Unit Under Test (UUT)
-	qadd #(19,32) uut (
-		.a(a), 
-		.b(b), 
-		.c(c)
-	);
+// Inputs
+reg [N-1:0] a;
+reg [N-1:0] b;
 
-	//	These are to monitor the values...
-	wire	[30:0]	c_out;
-	wire	[30:0]	a_in;
-	wire	[30:0]	b_in;
-	wire				a_sign;
-	wire				b_sign;
-	wire				c_sign;
-	
-	
-	assign	a_in = a[30:0];
-	assign	b_in = b[30:0];
-	assign	c_out = c[30:0];
-	assign	a_sign = a[31];
-	assign	b_sign = b[31];
-	assign	c_sign = c[31];
-	
-	
-	initial begin
-		// Initialize Inputs
-		a[30:0] = 0;
-		a[31] = 0;
-		b[31] = 1;
-		b[30:0] = 0;
+// Outputs
+wire [N-1:0] c;
 
-		// Wait 100 ns for global reset to finish
-		#100;
-        
-		// Add stimulus here
-		forever begin
-			#1 a = a+5179347;			
-			a[31] = 0;					// a is negative...
-			b[31] = 1;
-			
-			
-			if (a[30:0] > 2.1E9)				// input will always be "positive"
-				begin
-					a = 0;
-					b[31] = 1;			// b is negative...
-					b[30:0] = b[30:0] + 3779351;
-				end
-		end
+// Instantiate the qadd module
+qadd #(Q, N) uut (
+    .a(a), 
+    .b(b), 
+    .c(c)
+);
 
-	end
-      
+// Initial block to apply test vectors
+initial begin
+    // Monitor the inputs and output
+    $monitor("Time: %0d, a: %b, b: %b, c: %b", $time, a, b, c);
+    
+    // Test case 1: both positive
+    a = 32'b00000000000000001111111111111111;  // 32767
+    b = 32'b00000000000000000000000000000001;  // 1
+    #10;
+
+    // Test case 2: both negative
+    a = 32'b10000000000000001111111111111111;  // -32767
+    b = 32'b10000000000000000000000000000001;  // -1
+    #10;
+
+    // Test case 3: a positive, b negative, a > b
+    a = 32'b00000000000000001111111111111111;  // 32767
+    b = 32'b10000000000000000000000000000001;  // -1
+    #10;
+
+    // Test case 4: a positive, b negative, a < b
+    a = 32'b00000000000000000000000000000001;  // 1
+    b = 32'b10000000000000001111111111111111;  // -32767
+    #10;
+
+    // Test case 5: a negative, b positive, a > b
+    a = 32'b10000000000000001111111111111111;  // -32767
+    b = 32'b00000000000000000000000000000001;  // 1
+    #10;
+
+    // Test case 6: a negative, b positive, a < b
+    a = 32'b10000000000000000000000000000001;  // -1
+    b = 32'b00000000000000001111111111111111;  // 32767
+    #10;
+
+    // Test case 7: both zero
+    a = 32'b00000000000000000000000000000000;  // 0
+    b = 32'b00000000000000000000000000000000;  // 0
+    #10;
+
+    // Test case 8: one zero, one positive
+    a = 32'b00000000000000000000000000000000;  // 0
+    b = 32'b00000000000000001111111111111111;  // 32767
+    #10;
+
+    // Test case 9: one zero, one negative
+    a = 32'b00000000000000000000000000000000;  // 0
+    b = 32'b10000000000000001111111111111111;  // -32767
+    #10;
+
+    // Test case 10: large numbers, overflow check
+    a = 32'b01111111111111111111111111111111;  // Large positive number
+    b = 32'b01111111111111111111111111111111;  // Large positive number
+    #10;
+
+    // Test case 11: large negative numbers, overflow check
+    a = 32'b10000000000000000000000000000001;  // Large negative number
+    b = 32'b10000000000000000000000000000001;  // Large negative number
+    #10;
+
+    // End of test
+    $finish;
+end
+
 endmodule
