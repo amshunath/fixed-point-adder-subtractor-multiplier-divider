@@ -1,23 +1,19 @@
-module qmult #(
-	//Parameterized values
-	parameter Q = 15,
-	parameter N = 32
-	)
+module qmult #(parameter Q = 15,parameter N = 32)
 	(
 	 input			[N-1:0]	i_multiplicand,
 	 input			[N-1:0]	i_multiplier,
 	 output			[N-1:0]	o_result,
-	 output	reg				ovr
+	 output	reg		ovr
 	 );
 	 
 	
 	
 	reg [2*N-1:0]	r_result;		
 											
-	reg [N-1:0]		r_RetVal;
+	reg [N-1:0]	r_RetVal;
 	
 
-	assign o_result = r_RetVal;	
+	assign o_result = r_RetVal;
 	
 	always @(i_multiplicand, i_multiplier)	begin						
 		r_result <= i_multiplicand[N-2:0] * i_multiplier[N-2:0];	
@@ -43,7 +39,7 @@ module Test_mult;
 
 	// Outputs
 	wire [31:0] o_result;
-	wire			ovr;
+	wire		ovr;
 	
 	// Instantiate the Unit Under Test (UUT)
 	qmult #(19,32) uut (
@@ -54,8 +50,7 @@ module Test_mult;
 	);
 
 	initial begin
-		$monitor ("%b,%b,%b,%b", i_multiplicand, i_multiplier, o_result, ovr);		
-		
+		$monitor ("%b,%b,%b,%b", i_multiplicand, i_multiplier, o_result, ovr);	
 		// Initialize Inputs
  		i_multiplicand = 32'b00000000000110010010000111111011;	//pi = 3.141592
 		i_multiplicand[31] = 0;												
