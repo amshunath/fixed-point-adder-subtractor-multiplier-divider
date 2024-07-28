@@ -1,5 +1,4 @@
 module qsubtract #(
-	//Parameterized values
 	parameter Q = 15,
 	parameter N = 32
 	)
@@ -51,64 +50,64 @@ always @(a,b) begin
 	end
 endmodule
 
-module Test_subtract;
+`timescale 1ns / 1ps
+/////////////////////////////////////
+module tb_qsubtract;
 
-	// Inputs
-	reg [31:0] a;
-	reg [31:0] b;
+parameter Q = 15;
+parameter N = 32;
 
-	// Outputs
-	wire [31:0] c;
+reg [N-1:0] a;
+reg [N-1:0] b;
 
-	// Instantiate the Unit Under Test (UUT)
-	qsubtract #(19,32) uut (
-		.a(a), 
-		.b(b), 
-		.c(c)
-	);
+wire [N-1:0] c;
 
-	//	These are to monitor the values...
-	wire	[30:0]	c_out;
-	wire	[30:0]	a_in;
-	wire	[30:0]	b_in;
-	wire				a_sign;
-	wire				b_sign;
-	wire				c_sign;
-	
-	
-	assign	a_in = a[30:0];
-	assign	b_in = b[30:0];
-	assign	c_out = c[30:0];
-	assign	a_sign = a[31];
-	assign	b_sign = b[31];
-	assign	c_sign = c[31];
-	
-	
-	initial begin
-		// Initialize Inputs
-		a[30:0] = 0;
-		a[31] = 0;
-		b[31] = 1;
-		b[30:0] = 0;
+qsubtract #(Q, N) uut (
+    .a(a), 
+    .b(b), 
+    .c(c)
+);
 
-		// Wait 100 ns for global reset to finish
-		#100;
-        
-		// Add stimulus here
-		forever begin
-			#1 a = a+5179347;			
-			a[31] = 0;					// a is negative...
-			b[31] = 1;
-			
-			
-			if (a[30:0] > 2.1E9)			       // input will always be "positive"
-				begin
-					a = 0;
-					b[31] = 1;		       // b is negative...
-					b[30:0] = b[30:0] + 3779351;
-				end
-		end
+initial begin
+    $monitor("Time: %0d, a: %b, b: %b, c: %b", $time, a, b, c);
+    
+    a = 32'b00000000000000001111111111111111;
+    b = 32'b00000000000000000000000000000001;
+    #10;
 
-	end
-      
+    a = 32'b10000000000000001111111111111111;
+    b = 32'b10000000000000000000000000000001;
+    #10;
+
+    a = 32'b00000000000000001111111111111111;
+    b = 32'b10000000000000000000000000000001;
+    #10;
+
+    a = 32'b10000000000000001111111111111111;
+    b = 32'b00000000000000000000000000000001;
+    #10;
+
+    a = 32'b00000000000000000000000000000000;
+    b = 32'b00000000000000000000000000000000;
+    #10;
+
+    a = 32'b00000000000000000000000000000000;
+    b = 32'b00000000000000001111111111111111;
+    #10;
+
+    a = 32'b00000000000000000000000000000000;
+    b = 32'b10000000000000001111111111111111;
+    #10;
+
+    a = 32'b01111111111111111111111111111111;
+    b = 32'b00000000000000000000000000000001;
+    #10;
+
+    a = 32'b10000000000000000000000000000001;
+    b = 32'b10000000000000000000000000000001;
+    #10;
+
+    $finish;
+end
+
 endmodule
